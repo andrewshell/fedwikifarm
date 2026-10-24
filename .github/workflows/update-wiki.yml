@@ -1,0 +1,47 @@
+name: Update wiki
+
+on:
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      # Regenerating the lockfile from scratch picks up every plugin release
+      # that wiki's caret ranges allow, not just a new wiki version.
+      - run: |
+          rm package-lock.json
+          npm install --save-exact wiki@latest
+          npx wiki --version > WIKI_VERSIONS.json
+
+      - id: versions
+        run: |
+          {
+            echo 'diff<<EOF'
+            git diff --unified=0 WIKI_VERSIONS.json | grep '^[-+] ' || echo 'No version changes in WIKI_VERSIONS.json.'
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: deps/update-wiki
+          commit-message: "fix(deps): update wiki and plugins"
+          title: "fix(deps): update wiki and plugins"
+          body: |
+            Regenerated `package-lock.json` against the latest `wiki` release.
+
+            ```diff
+            ${{ steps.versions.outputs.diff }}
+            ```

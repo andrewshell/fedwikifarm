@@ -5,7 +5,7 @@ Start Playing Federated Wiki: http://start.fed.wiki
 ### Run a local wiki farm
 
     docker run -p 3000:3000 -it --rm \
-      dobbs/farm
+      ghcr.io/andrewshell/fedwikifarm
 
 Visit http://localhost:3000 and http://anything.localhost:3000
 
@@ -13,7 +13,7 @@ Visit http://localhost:3000 and http://anything.localhost:3000
 
     docker run -p 3000:3000 -it --rm \
       -v ~/.wiki:/home/node/.wiki \
-      dobbs/farm
+      ghcr.io/andrewshell/fedwikifarm
 
 Your wiki pages and configuration will be saved in the ~/.wiki folder.
 
@@ -23,55 +23,57 @@ This image's tag does not match the version of the included wiki
 software. Our version indicates the scale of changes in this tiny
 devops pipeline.
 
+`package-lock.json` pins wiki and every plugin, so the image contains
+exactly what the lockfile says. `.npmrc` sets `install-strategy=shallow`
+so wiki's plugins land in `node_modules/wiki/node_modules`, where wiki
+looks for them.
+
 Testing new images locally:
 
 ``` bash
-TAG=1.0.14-prefer-title
-IMAGE=dobbs/farm:$TAG
-docker buildx build --tag $IMAGE --platform linux/amd64,linux/arm64 .
+IMAGE=fedwikifarm:dev
+docker build --tag $IMAGE .
+docker run -p 3000:3000 -it --rm $IMAGE
 ```
 
-You might also want to remember the most recent tag:
+# Updating wiki and plugins
+
+Every Monday, `.github/workflows/update-wiki.yml` regenerates
+`package-lock.json` against the latest `wiki` release and refreshes
+`WIKI_VERSIONS.json`. If anything changed, it opens or updates a single
+pull request, `fix(deps): update wiki and plugins`. Run it on demand
+from the Actions tab.
+
+To do the same by hand:
 
 ``` bash
-git tag --list | tail -1
-```
-
-Update WIKI_VERSIONS.json
-
-``` bash
-docker run --rm $IMAGE wiki --version > WIKI_VERSIONS.json
+rm package-lock.json
+npm install --save-exact wiki@latest
+npx wiki --version > WIKI_VERSIONS.json
 ```
 
 # Publish container images
 
-End-to-end recipe to publish a new version. May require judgment in
-the steps before git push and docker push.
-``` bash
-# Emit current version to standard error and next version to standard out.
-# use that to assign the next TAG
-TAG="$(git tag --list | tail -1 | perl -lne 'print STDERR $_;s/(\d+)$/$1+1/e;print $_;')"
-IMAGE=dobbs/farm:$TAG
-docker buildx build --no-cache --tag $IMAGE --platform linux/amd64,linux/arm64 .
-docker tag $IMAGE dobbs/farm:latest
-docker run --rm $IMAGE wiki --version > WIKI_VERSIONS.json
-git add .
-git commit -m "upgrade to wiki 0.40.1"
-git tag -am "" "$TAG"
-git push --atomic origin main "$TAG"
-docker push $IMAGE
-docker push dobbs/farm:latest
-```
+Releases are driven by [release-please](https://github.com/googleapis/release-please)
+from [Conventional Commits](https://www.conventionalcommits.org/) on
+`main`. Use `fix:` for a patch, `feat:` for a minor, and `feat!:` for
+a major release.
+
+1. Merge changes to `main`. release-please opens or updates a release
+   pull request that bumps the version in `package.json` and adds to
+   `CHANGELOG.md`.
+2. Merge the release pull request. release-please tags the commit and
+   creates a GitHub release.
+3. The same workflow builds the image for linux/amd64 and linux/arm64
+   and pushes it to ghcr.io/andrewshell/fedwikifarm as both the new
+   version and `latest`.
+
+Watch the build at https://github.com/andrewshell/fedwikifarm/actions
 
 Announce the new image in matrix:
 
-    I've published a new docker image with wiki 0.40.1: dobbs/farm:1.2.3
-    https://hub.docker.com/repository/docker/dobbs/farm/tags
-
-Sometimes we publish a docker image with no changes to the wiki source
-code. This allows us to pick up non-breaking changes to some of the
-plugins. Using `--no-cache` ensures docker re-runs this line from the
-`Dockerfile` in particular: `npm install -g --prefix . $WIKI_PACKAGE`.
+    I've published a new docker image with wiki 0.40.1: ghcr.io/andrewshell/fedwikifarm:1.2.3
+    https://github.com/andrewshell/fedwikifarm/pkgs/container/fedwikifarm
 
 # Experiment with a local farm
 
@@ -111,7 +113,7 @@ but will accept the same password for authentication.
 
     docker run -p 3000:3000 -it --rm \
       -v ~/tmp/wiki:/home/node/.wiki \
-      dobbs/farm
+      ghcr.io/andrewshell/fedwikifarm
 
 ## Visit a couple local wiki sites
 

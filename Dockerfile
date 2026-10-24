@@ -4,14 +4,10 @@ RUN apk add --update --no-cache \
   git \
   jq
 WORKDIR "/home/node"
-ARG PATH
-ARG HOME
-ARG WIKI_PACKAGE=wiki@0.40.1
-RUN su node -c "npm install -g --prefix . $WIKI_PACKAGE"
-RUN su node -c "mkdir -p .wiki"
+USER node
+COPY --chown=node:node package.json package-lock.json .npmrc ./
+RUN npm ci --omit=dev && mkdir -p .wiki
 VOLUME "/home/node/.wiki"
 EXPOSE 3000
-USER node
-ENV PATH="${PATH}:/home/node/bin"
-ENV NPM_CONFIG_PREFIX="${HOME}"
+ENV PATH="/home/node/node_modules/.bin:${PATH}"
 CMD ["wiki", "--farm", "--security_type=friends"]
