@@ -1,10 +1,11 @@
 {
- "wiki": "0.40.1",
- "wiki-server": "0.27.0",
- "wiki-client": "0.32.0",
+ "wiki": "0.41.0",
+ "wiki-server": "0.28.1",
+ "wiki-client": "0.33.0",
  "security": {
   "wiki-security-friends": "0.3.1",
-  "wiki-security-passportjs": "0.14.0"
+  "wiki-security-passportjs": "0.14.0",
+  "wiki-security-social": "0.1.0"
  },
  "plugins": {
   "wiki-plugin-activity": "0.7.1",
@@ -26,10 +27,11 @@
   "wiki-plugin-grep": "1.1.1",
   "wiki-plugin-html": "0.7.2",
   "wiki-plugin-image": "0.8.2",
+  "wiki-plugin-journalmatic": "0.2.3",
   "wiki-plugin-line": "0.6.0",
-  "wiki-plugin-map": "0.9.1",
+  "wiki-plugin-map": "0.10.0",
   "wiki-plugin-markdown": "0.5.3",
-  "wiki-plugin-math": "0.2.0",
+  "wiki-plugin-math": "0.3.0",
   "wiki-plugin-metabolism": "0.4.0",
   "wiki-plugin-method": "0.4.1",
   "wiki-plugin-pagefold": "0.4.0",
