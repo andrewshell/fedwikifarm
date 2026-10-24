@@ -28,6 +28,10 @@ exactly what the lockfile says. `.npmrc` sets `install-strategy=shallow`
 so wiki's plugins land in `node_modules/wiki/node_modules`, where wiki
 looks for them.
 
+The `Dockerfile` pins the Node base image by version and digest.
+Dependabot checks it weekly and opens a `fix(deps)` pull request when
+a new Node image is published, so merging it releases a rebuilt image.
+
 Testing new images locally:
 
 ``` bash
