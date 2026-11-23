@@ -3,6 +3,6 @@
   "version": "1.3.0",
   "private": true,
   "dependencies": {
-    "wiki": "0.41.0"
+    "wiki": "0.41.1"
   }
 }
